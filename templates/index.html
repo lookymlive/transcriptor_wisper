@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Transcriptor de Audio con Whisper</title>
+    <!-- Meta viewport para responsividad -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Hoja de estilos personalizada -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Transcriptor de Audio con Whisper</h1>
+        <div class="card p-4 shadow">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <!-- Subir archivo -->
+                <div class="form-group">
+                    <label for="audio">Selecciona un archivo de audio o video:</label>
+                    <input type="file" class="form-control-file" id="audio" name="audio" accept="audio/*,video/*" required>
+                </div>
+                <!-- Seleccionar idioma -->
+                <div class="form-group">
+                    <label for="language">Selecciona el idioma del audio:</label>
+                    <select class="form-control" id="language" name="language">
+                        <option value="es">Español</option>
+                        <option value="en">Inglés</option>
+                        <!-- Agrega más idiomas si lo deseas -->
+                    </select>
+                </div>
+                <!-- Seleccionar formato de descarga -->
+                <div class="form-group">
+                    <label for="response_format">Selecciona el formato de descarga:</label>
+                    <select class="form-control" id="response_format" name="response_format">
+                        <option value="txt">Texto (.txt)</option>
+                        <option value="srt">Subtítulos (.srt)</option>
+                    </select>
+                </div>
+                <!-- Botón de transcripción -->
+                <button type="submit" class="btn btn-primary">Transcribir</button>
+            </form>
+            <!-- Mensajes de resultado -->
+            <div id="result" class="mt-3"></div>
+        </div>
+    </div>
+
+    <!-- Scripts de Bootstrap y dependencias -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Script personalizado -->
+    <script>
+        // Manejar envío del formulario
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="alert alert-info">Procesando... Por favor, espera.</div>';
+
+            try {
+                const response = await fetch('/transcribir', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = 'transcripcion.txt';
+
+                    const match = contentDisposition ? contentDisposition.match(/filename="(.+)"/) : null;
+                    if (match && match.length === 2)
+                        filename = match[1];
+
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    resultDiv.innerHTML = '<div class="alert alert-success">Transcripción completada. El archivo ha sido descargado.</div>';
+                } else {
+                    const errorData = await response.json();
+                    resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${errorData.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

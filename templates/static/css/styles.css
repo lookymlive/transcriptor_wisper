@@ -1,0 +1,21 @@
+body {
+  background-color: #f0f8ff; /* Un suave color azul */
+}
+
+h1 {
+  color: #0C4B8D; /* Azul oscuro */
+}
+
+.btn-primary {
+  background-color: #FFB02E; /* Naranja */
+  border-color: #FFB02E;
+}
+
+.btn-primary:hover {
+  background-color: #e09b28; /* Naranja oscuro */
+  border-color: #e09b28;
+}
+
+.card {
+  border: 1px solid #0C4B8D; /* Borde azul oscuro */
+}
